@@ -1,5 +1,7 @@
 import { Part } from './page.types'
 
+export const FIELD_FRAME_RATE: number = 300
+
 export const FIELD_AREA_SIZE: number = 40
 
 export const FIELD_ROWS: number = 20
