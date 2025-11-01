@@ -8,11 +8,11 @@ export type Part = {
   color: PartColor
 }
 
-type PartPosition = {
+export type PartPosition = {
   x: number
   y: number
 }
 
-type PartShape = (typeof PART_SHAPES)[number]
+export type PartShape = (typeof PART_SHAPES)[number]
 
-type PartColor = (typeof PART_COLORS)[number]
+export type PartColor = (typeof PART_COLORS)[number]

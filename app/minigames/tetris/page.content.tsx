@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { Title } from '@/app/page.styles'
 
@@ -8,46 +8,63 @@ import {
   FIELD_COLUMNS,
   FIELD_EMPTY_AREA,
   FIELD_ROWS,
+  PART_COLORS,
   PART_INITIAL,
+  PART_SHAPES,
 } from './page.constants'
 
 import * as Game from './page.styles'
-import { Field, Part } from './page.types'
+import { Field, Part, PartColor, PartShape } from './page.types'
 
 const Content = () => {
   const [field, setField] = useState<Field>([[]])
   const [part, setPart] = useState<Part>(PART_INITIAL)
 
-  // ---- Build field (grid) ----
+  // Randomize part color
+  const randomColor = useCallback((): PartColor => {
+    const index = Math.floor(Math.random() * PART_COLORS.length)
+    return PART_COLORS[index]
+  }, [])
+
+  // Randomize part shape
+  const randomShape = useCallback((): PartShape => {
+    const index = Math.floor(Math.random() * PART_SHAPES.length)
+    return PART_SHAPES[index]
+  }, [])
+
+  // Build field
   const buildField = () => {
     return Array.from({ length: FIELD_ROWS }, () =>
       Array.from({ length: FIELD_COLUMNS }, () => FIELD_EMPTY_AREA),
     )
   }
 
-  // ---- Falling logic ----
+  // Falling logic
   useEffect(() => {
-    // Inicializa o campo
+    // Init field
     setField(buildField())
 
     const interval = setInterval(() => {
       setPart(prev => {
         const newY = prev.position.y + 1
+        const isNewPart = newY >= FIELD_ROWS
 
         return {
           ...prev,
           position: {
             ...prev.position,
-            y: newY >= FIELD_ROWS ? 0 : newY,
+            y: isNewPart ? 0 : newY,
           },
+          color: isNewPart ? randomColor() : prev.color,
+          shape: isNewPart ? randomShape() : prev.shape,
         }
       })
-    }, 800)
+    }, 300)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [randomColor, randomShape])
 
-  // ---- Atualiza o field quando a peça move ----
+  // Update field with movement
   useEffect(() => {
     setField(() => {
       const newField = buildField()
@@ -55,15 +72,82 @@ const Content = () => {
       const { x, y } = part.position
 
       if (y < FIELD_ROWS && x < FIELD_COLUMNS) {
-        // TODO: colocar shapes reais depois
-        newField[y][x] = 1
+        if (part.shape === '.') {
+          if (y >= 0) {
+            newField[y][x] = 1
+          }
+        }
+
+        if (part.shape === 's') {
+          if (y === 0) {
+            newField[y][x + 1] = 1
+          }
+          if (y === 1) {
+            newField[y - 1][x] = 1
+            newField[y - 1][x + 1] = 1
+            newField[y][x + 1] = 1
+          }
+          if (y >= 2) {
+            newField[y - 2][x] = 1
+            newField[y - 1][x] = 1
+            newField[y - 1][x + 1] = 1
+            newField[y][x + 1] = 1
+          }
+        }
+
+        if (part.shape === 'i') {
+          if (y === 0) {
+            newField[y][x] = 1
+          }
+          if (y === 1) {
+            newField[y - 1][x] = 1
+            newField[y][x] = 1
+          }
+          if (y === 2) {
+            newField[y - 2][x] = 1
+            newField[y - 1][x] = 1
+            newField[y][x] = 1
+          }
+          if (y >= 3) {
+            newField[y - 3][x] = 1
+            newField[y - 2][x] = 1
+            newField[y - 1][x] = 1
+            newField[y][x] = 1
+          }
+        }
+
+        if (part.shape === 't') {
+          if (y === 0) {
+            newField[y][x + 1] = 1
+          }
+
+          if (y >= 1) {
+            newField[y - 1][x + 2] = 1
+            newField[y - 1][x + 1] = 1
+            newField[y - 1][x] = 1
+            newField[y][x + 1] = 1
+          }
+        }
+
+        if (part.shape === 'o') {
+          if (y === 0) {
+            newField[y][x] = 1
+            newField[y][x + 1] = 1
+          }
+          if (y >= 1) {
+            newField[y][x] = 1
+            newField[y][x + 1] = 1
+            newField[y - 1][x] = 1
+            newField[y - 1][x + 1] = 1
+          }
+        }
       }
 
       return newField
     })
   }, [part])
 
-  // ---- Movimentação com teclado ----
+  // Keyboard movement
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       setPart(prev => {
@@ -76,14 +160,18 @@ const Content = () => {
         if (event.key === 'ArrowRight') {
           return {
             ...prev,
-            position: { x: Math.min(FIELD_COLUMNS - 1, x + 1), y },
-          }
-        }
-
-        if (event.key === 'ArrowDown') {
-          return {
-            ...prev,
-            position: { x, y: Math.min(FIELD_ROWS - 1, y + 1) },
+            position: {
+              x: Math.min(
+                FIELD_COLUMNS -
+                  (['i', '.'].includes(prev.shape)
+                    ? 1
+                    : prev.shape === 't'
+                    ? 3
+                    : 2),
+                x + 1,
+              ),
+              y,
+            },
           }
         }
 
@@ -105,6 +193,7 @@ const Content = () => {
             <Game.Area
               key={`${rowIndex}-${columnIndex}`}
               $filled={Boolean(filled)}
+              $color={part.color}
             />
           )),
         )}
