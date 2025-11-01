@@ -1,25 +1,42 @@
-import { useMemo } from 'react'
+import { Metadata } from 'next'
 
-import { Button } from './components'
+import Content from './page.content'
 
-import * as Home from './page.styles'
-import { MINIGAMES } from './page.constants'
-
-export const Page = () => {
-  const _minigames = useMemo(
-    () =>
-      MINIGAMES.map(({ id, name, disabled, url }) => (
-        <Button key={id} label={name} disabled={disabled} url={url} />
-      )),
-    [],
-  )
-
-  return (
-    <Home.Wrapper>
-      <Home.Title>Minigames</Home.Title>
-      {_minigames}
-    </Home.Wrapper>
-  )
+export const metadata: Metadata = {
+  title: 'Hub de Minigames',
+  icons: {
+    icon: [
+      {
+        url: '/favicons/home/favicon-16x16.png',
+        sizes: '16x16',
+        type: 'image/png',
+      },
+      {
+        url: '/favicons/home/favicon-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
+      },
+      {
+        url: '/favicons/home/favicon-48x48.png',
+        sizes: '48x48',
+        type: 'image/png',
+      },
+    ],
+    apple: '/favicons/home/apple-touch-icon.png',
+  },
+  authors: [
+    {
+      name: 'Willian Froes',
+      url: 'https://github.com/willian-froes',
+    },
+  ],
+  openGraph: {
+    title: 'Hub de Minigames',
+    description: 'Developed by Will',
+    url: 'https://github.com/willian-froes/Minigame',
+  },
 }
+
+export const Page = () => <Content />
 
 export default Page

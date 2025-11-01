@@ -19,6 +19,7 @@ export const PART_COLORS = [
   'yellow',
   'pink',
   'purple',
+  'orange',
 ] as const
 
 export const PART_INITIAL: Part = {
