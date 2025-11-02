@@ -32,3 +32,5 @@ export const PART_INITIAL: Part = {
   shape: '.',
   color: 'red',
 }
+
+export const SCORE_RATE: number = 10

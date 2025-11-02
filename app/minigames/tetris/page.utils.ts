@@ -1,8 +1,10 @@
 'use client'
 
+import { Dispatch, SetStateAction } from 'react'
 import {
   FIELD_COLUMNS,
   FIELD_EMPTY_AREA,
+  FIELD_FILL_AREA,
   FIELD_ROWS,
   PART_COLORS,
   PART_SHAPES,
@@ -19,13 +21,13 @@ export const randomizeShape = (): PartShape => {
   return PART_SHAPES[index]
 }
 
-export const buildField = () => {
+export const buildField = (): Field => {
   return Array.from({ length: FIELD_ROWS }, () =>
     Array.from({ length: FIELD_COLUMNS }, () => FIELD_EMPTY_AREA),
   )
 }
 
-export const buildPart = (field: Field, part: Part) => {
+export const buildPart = (field: Field, part: Part): Field => {
   const { x, y } = part.position
 
   if (y < FIELD_ROWS && x < FIELD_COLUMNS) {
@@ -118,7 +120,8 @@ export const renderPart = (part: Part): Part => {
   }
 }
 
-export const handlePartMovement = (part: Part, event: KeyboardEvent) => {
+// TODO: Atualizar movimentação por forma considerando se está nas extremidades ou tem alguma forma nas laterais
+export const handlePartMovement = (part: Part, event: KeyboardEvent): Part => {
   const { x, y } = part.position
 
   if (event.key === 'ArrowLeft') {
@@ -140,4 +143,52 @@ export const handlePartMovement = (part: Part, event: KeyboardEvent) => {
   }
 
   return part
+}
+
+export const handleFieldStack = (
+  field: Field,
+  part: Part,
+  setPart: Dispatch<SetStateAction<Part>>,
+) => {
+  const { x, y } = part.position
+  const isBottom = y === FIELD_ROWS - 1
+  let isBellowFill = false
+
+  if (part.shape === '.' || part.shape === 'i') {
+    isBellowFill = field[y + 1]?.[x] === FIELD_FILL_AREA
+  }
+
+  if (part.shape === 'o') {
+    isBellowFill =
+      field[y + 1]?.[x] === FIELD_FILL_AREA ||
+      field[y + 1]?.[x + 1] === FIELD_FILL_AREA
+  }
+
+  if (part.shape === 's') {
+    isBellowFill =
+      field[y]?.[x] === FIELD_FILL_AREA ||
+      field[y + 1]?.[x + 1] === FIELD_FILL_AREA
+  }
+
+  if (part.shape === 't') {
+    isBellowFill =
+      field[y]?.[x] === FIELD_FILL_AREA ||
+      field[y + 1]?.[x + 1] === FIELD_FILL_AREA ||
+      field[y]?.[x + 2] === FIELD_FILL_AREA
+  }
+
+  if (isBellowFill || isBottom) {
+    const newField = field.map(row => [...row])
+    const fixedField = buildPart(newField, part)
+
+    setPart({
+      position: { x: 0, y: 0 },
+      color: randomizeColor(),
+      shape: randomizeShape(),
+    })
+
+    return fixedField
+  }
+
+  return field
 }

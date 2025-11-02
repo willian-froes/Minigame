@@ -12,15 +12,22 @@ import {
   buildPart,
   renderPart,
   handlePartMovement,
+  handleFieldStack,
 } from './page.utils'
 
 const Content = () => {
   const [field, setField] = useState<Field>([[]])
   const [part, setPart] = useState<Part>(PART_INITIAL)
+  const [score, setScore] = useState<number>(0)
+
+  const renderField = useMemo(() => {
+    const fieldBase = field.map(row => [...row])
+    return buildPart(fieldBase, part)
+  }, [field, part])
 
   const _game = useMemo(
     () =>
-      field.map((row, rowIndex) =>
+      renderField.map((row, rowIndex) =>
         row.map((filled, columnIndex) => (
           <Game.Area
             key={`${rowIndex}-${columnIndex}`}
@@ -29,22 +36,18 @@ const Content = () => {
           />
         )),
       ),
-    [field, part],
+    [renderField, part],
   )
 
   useEffect(() => {
     setField(buildField())
 
     const renderFrame = setInterval(() => {
-      setPart(renderPart)
+      setPart(prev => renderPart(prev))
     }, FIELD_FRAME_RATE)
 
     return () => clearInterval(renderFrame)
   }, [])
-
-  useEffect(() => {
-    setField(() => buildPart(buildField(), part))
-  }, [part])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -55,10 +58,18 @@ const Content = () => {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  // TODO: Tratar stack quando cumprir multiplas linhas e atualizar score
+  useEffect(() => {
+    setField(prev => handleFieldStack(prev, part, setPart))
+  }, [part])
+
   return (
     <Game.Wrapper>
       <Title>Tetris</Title>
-      <Game.Container>{_game}</Game.Container>
+      <p>Score: {score}</p>
+      <Game.Container>
+        <Game.Field>{_game}</Game.Field>
+      </Game.Container>
     </Game.Wrapper>
   )
 }
