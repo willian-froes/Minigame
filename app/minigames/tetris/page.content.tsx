@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-
 import { Title } from '@/app/page.styles'
 
 import { FIELD_FRAME_RATE, PART_INITIAL } from './page.constants'
@@ -16,7 +15,7 @@ import {
 } from './page.utils'
 
 const Content = () => {
-  const [field, setField] = useState<Field>([[]])
+  const [field, setField] = useState<Field>(buildField())
   const [part, setPart] = useState<Part>(PART_INITIAL)
   const [score, setScore] = useState<number>(0)
 
@@ -28,37 +27,34 @@ const Content = () => {
   const _game = useMemo(
     () =>
       renderField.map((row, rowIndex) =>
-        row.map((filled, columnIndex) => (
+        row.map((cell, columnIndex) => (
           <Game.Area
             key={`${rowIndex}-${columnIndex}`}
-            $filled={Boolean(filled)}
-            $color={part.color}
+            $filled={!!cell}
+            $color={cell?.color}
           />
         )),
       ),
-    [renderField, part],
+    [renderField],
   )
 
   useEffect(() => {
-    setField(buildField())
-
-    const renderFrame = setInterval(() => {
+    const interval = setInterval(() => {
       setPart(prev => renderPart(prev))
     }, FIELD_FRAME_RATE)
 
-    return () => clearInterval(renderFrame)
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       setPart(prev => handlePartMovement(prev, event))
     }
-
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // TODO: Tratar stack quando cumprir multiplas linhas e atualizar score
+  // TODO: Atualizar score e stack quando completar uma ou multiplas linhas
   useEffect(() => {
     setField(prev => handleFieldStack(prev, part, setPart))
   }, [part])

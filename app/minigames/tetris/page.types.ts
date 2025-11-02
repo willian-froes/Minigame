@@ -1,6 +1,6 @@
 import { PART_SHAPES, PART_COLORS } from './page.constants'
 
-export type Field = Array<Array<number>>
+export type Field = Array<Array<Part | undefined>>
 
 export type Part = {
   position: PartPosition

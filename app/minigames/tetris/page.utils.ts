@@ -1,10 +1,9 @@
 'use client'
 
 import { Dispatch, SetStateAction } from 'react'
+
 import {
   FIELD_COLUMNS,
-  FIELD_EMPTY_AREA,
-  FIELD_FILL_AREA,
   FIELD_ROWS,
   PART_COLORS,
   PART_SHAPES,
@@ -23,7 +22,7 @@ export const randomizeShape = (): PartShape => {
 
 export const buildField = (): Field => {
   return Array.from({ length: FIELD_ROWS }, () =>
-    Array.from({ length: FIELD_COLUMNS }, () => FIELD_EMPTY_AREA),
+    Array.from({ length: FIELD_COLUMNS }, () => undefined),
   )
 }
 
@@ -33,71 +32,71 @@ export const buildPart = (field: Field, part: Part): Field => {
   if (y < FIELD_ROWS && x < FIELD_COLUMNS) {
     if (part.shape === '.') {
       if (y >= 0) {
-        field[y][x] = 1
+        field[y][x] = part
       }
     }
 
     if (part.shape === 's') {
       if (y === 0) {
-        field[y][x + 1] = 1
+        field[y][x + 1] = part
       }
       if (y === 1) {
-        field[y - 1][x] = 1
-        field[y - 1][x + 1] = 1
-        field[y][x + 1] = 1
+        field[y - 1][x] = part
+        field[y - 1][x + 1] = part
+        field[y][x + 1] = part
       }
       if (y >= 2) {
-        field[y - 2][x] = 1
-        field[y - 1][x] = 1
-        field[y - 1][x + 1] = 1
-        field[y][x + 1] = 1
+        field[y - 2][x] = part
+        field[y - 1][x] = part
+        field[y - 1][x + 1] = part
+        field[y][x + 1] = part
       }
     }
 
     if (part.shape === 'i') {
       if (y === 0) {
-        field[y][x] = 1
+        field[y][x] = part
       }
       if (y === 1) {
-        field[y - 1][x] = 1
-        field[y][x] = 1
+        field[y - 1][x] = part
+        field[y][x] = part
       }
       if (y === 2) {
-        field[y - 2][x] = 1
-        field[y - 1][x] = 1
-        field[y][x] = 1
+        field[y - 2][x] = part
+        field[y - 1][x] = part
+        field[y][x] = part
       }
       if (y >= 3) {
-        field[y - 3][x] = 1
-        field[y - 2][x] = 1
-        field[y - 1][x] = 1
-        field[y][x] = 1
+        field[y - 3][x] = part
+        field[y - 2][x] = part
+        field[y - 1][x] = part
+        field[y][x] = part
       }
     }
 
     if (part.shape === 't') {
       if (y === 0) {
-        field[y][x + 1] = 1
+        field[y][x + 1] = part
       }
 
       if (y >= 1) {
-        field[y - 1][x + 2] = 1
-        field[y - 1][x + 1] = 1
-        field[y - 1][x] = 1
-        field[y][x + 1] = 1
+        field[y - 1][x + 2] = part
+        field[y - 1][x + 1] = part
+        field[y - 1][x] = part
+        field[y][x + 1] = part
       }
     }
 
     if (part.shape === 'o') {
       if (y === 0) {
-        field[y][x] = 1
-        field[y][x + 1] = 1
+        field[y][x] = part
+        field[y][x + 1] = part
       }
       if (y >= 1) {
-        field[y][x] = 1
-        field[y][x + 1] = 1
-        field[y - 1][x] = 1
-        field[y - 1][x + 1] = 1
+        field[y][x] = part
+        field[y][x + 1] = part
+        field[y - 1][x] = part
+        field[y - 1][x + 1] = part
       }
     }
   }
@@ -155,26 +154,20 @@ export const handleFieldStack = (
   let isBellowFill = false
 
   if (part.shape === '.' || part.shape === 'i') {
-    isBellowFill = field[y + 1]?.[x] === FIELD_FILL_AREA
+    isBellowFill = !!field[y + 1]?.[x]
   }
 
   if (part.shape === 'o') {
-    isBellowFill =
-      field[y + 1]?.[x] === FIELD_FILL_AREA ||
-      field[y + 1]?.[x + 1] === FIELD_FILL_AREA
+    isBellowFill = !!field[y + 1]?.[x] || !!field[y + 1]?.[x + 1]
   }
 
   if (part.shape === 's') {
-    isBellowFill =
-      field[y]?.[x] === FIELD_FILL_AREA ||
-      field[y + 1]?.[x + 1] === FIELD_FILL_AREA
+    isBellowFill = !!field[y]?.[x] || !!field[y + 1]?.[x + 1]
   }
 
   if (part.shape === 't') {
     isBellowFill =
-      field[y]?.[x] === FIELD_FILL_AREA ||
-      field[y + 1]?.[x + 1] === FIELD_FILL_AREA ||
-      field[y]?.[x + 2] === FIELD_FILL_AREA
+      !!field[y]?.[x] || !!field[y + 1]?.[x + 1] || !!field[y]?.[x + 2]
   }
 
   if (isBellowFill || isBottom) {
