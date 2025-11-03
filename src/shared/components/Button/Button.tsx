@@ -18,5 +18,3 @@ export const Button = ({ label, url, disabled, ...props }: ButtonProps) => {
 
   return url && !disabled ? <Link href={url}>{content}</Link> : content
 }
-
-export default Button

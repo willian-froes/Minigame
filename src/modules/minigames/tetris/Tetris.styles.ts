@@ -1,8 +1,7 @@
-'use client'
-
 import styled from 'styled-components'
-import { FIELD_COLUMNS } from './page.constants'
-import { PartColor } from './page.types'
+
+import { FIELD_COLUMNS } from './Tetris.constants'
+import { PartColor } from './Tetris.types'
 
 export const Wrapper = styled.main`
   display: flex;

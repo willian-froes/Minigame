@@ -1,4 +1,4 @@
-import { Part } from './page.types'
+import { Part } from './Tetris.types'
 
 export const FIELD_FRAME_RATE: number = 300
 

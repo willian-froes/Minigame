@@ -1,28 +1,28 @@
 import { Metadata } from 'next'
 
-import Content from './page.content'
+import { LobbyPage } from '@/modules/lobby'
 
 export const metadata: Metadata = {
   title: 'Hub de Minigames',
   icons: {
     icon: [
       {
-        url: '/favicons/home/favicon-16x16.png',
+        url: '/favicons/lobby/favicon-16x16.png',
         sizes: '16x16',
         type: 'image/png',
       },
       {
-        url: '/favicons/home/favicon-32x32.png',
+        url: '/favicons/lobby/favicon-32x32.png',
         sizes: '32x32',
         type: 'image/png',
       },
       {
-        url: '/favicons/home/favicon-48x48.png',
+        url: '/favicons/lobby/favicon-48x48.png',
         sizes: '48x48',
         type: 'image/png',
       },
     ],
-    apple: '/favicons/home/apple-touch-icon.png',
+    apple: '/favicons/lobby/apple-touch-icon.png',
   },
   authors: [
     {
@@ -37,6 +37,6 @@ export const metadata: Metadata = {
   },
 }
 
-export const Page = () => <Content />
+const Page = () => <LobbyPage />
 
 export default Page

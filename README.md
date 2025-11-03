@@ -100,6 +100,12 @@ Resultado (exemplo com patch):
 
 <br />
 
+## ⚠️ Favicons
+
+https://favicon.io/emoji-favicons
+
+<br />
+
 ## 📜 Licença
 
 Este projeto é **não comercial** e está licenciado sob os termos especificados no arquivo [`LICENSE.md`](./LICENSE.md).

@@ -1,5 +1,3 @@
-'use client'
-
 import { Dispatch, SetStateAction } from 'react'
 
 import {
@@ -7,8 +5,8 @@ import {
   FIELD_ROWS,
   PART_COLORS,
   PART_SHAPES,
-} from './page.constants'
-import { Field, Part, PartColor, PartShape } from './page.types'
+} from './Tetris.constants'
+import { Field, Part, PartColor, PartShape } from './Tetris.types'
 
 export const randomizeColor = (): PartColor => {
   const index = Math.floor(Math.random() * PART_COLORS.length)
@@ -119,7 +117,6 @@ export const renderPart = (part: Part): Part => {
   }
 }
 
-// TODO: Atualizar movimentação por forma considerando se está nas extremidades ou tem alguma forma nas laterais
 export const handlePartMovement = (part: Part, event: KeyboardEvent): Part => {
   const { x, y } = part.position
 

@@ -2,12 +2,12 @@
 
 import { useMemo } from 'react'
 
-import { Button } from './components'
+import { Button } from '@/shared/components'
+import { MINIGAMES } from '@/shared/constants'
 
-import * as Home from './page.styles'
-import { MINIGAMES } from './page.constants'
+import * as Lobby from './Lobby.styles'
 
-export const Content = () => {
+export const LobbyPage = () => {
   const _minigames = useMemo(
     () =>
       MINIGAMES.map(({ id, name, disabled, url }) => (
@@ -17,11 +17,9 @@ export const Content = () => {
   )
 
   return (
-    <Home.Wrapper>
-      <Home.Title>Minigames</Home.Title>
+    <Lobby.Wrapper>
+      <Lobby.Title>Minigames</Lobby.Title>
       {_minigames}
-    </Home.Wrapper>
+    </Lobby.Wrapper>
   )
 }
-
-export default Content

@@ -1,4 +1,4 @@
-import { PART_SHAPES, PART_COLORS } from './page.constants'
+import { PART_SHAPES, PART_COLORS } from './Tetris.constants'
 
 export type Field = Array<Array<Part | undefined>>
 
