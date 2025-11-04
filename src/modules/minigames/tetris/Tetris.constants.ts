@@ -22,7 +22,7 @@ export const PART_COLORS = [
 
 export const PART_INITIAL: Part = {
   position: {
-    x: 0,
+    x: 4,
     y: 0,
   },
   shape: '.',

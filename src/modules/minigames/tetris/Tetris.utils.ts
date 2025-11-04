@@ -117,14 +117,74 @@ export const renderPart = (part: Part): Part => {
   }
 }
 
-export const handlePartMovement = (part: Part, event: KeyboardEvent): Part => {
+export const handlePartMovement = (
+  part: Part,
+  field: Field,
+  event: KeyboardEvent,
+): Part => {
   const { x, y } = part.position
 
   if (event.key === 'ArrowLeft') {
+    if (part.shape === '.') {
+      if (field[y]?.[x - 1]) return part
+    }
+
+    if (part.shape === 's') {
+      if (field[y]?.[x] || field[y - 1]?.[x - 1] || field[y - 2]?.[x - 1])
+        return part
+    }
+
+    if (part.shape === 'i') {
+      if (
+        field[y]?.[x - 1] ||
+        field[y - 1]?.[x - 1] ||
+        field[y - 2]?.[x - 1] ||
+        field[y - 3]?.[x - 1]
+      )
+        return part
+    }
+
+    if (part.shape === 't') {
+      if (field[y]?.[x] || field[y - 1]?.[x - 1]) return part
+    }
+
+    if (part.shape === 'o') {
+      if (field[y]?.[x - 1] || field[y - 1]?.[x - 1]) return part
+    }
+
     return { ...part, position: { x: Math.max(0, x - 1), y } }
   }
 
   if (event.key === 'ArrowRight') {
+    const { x, y } = part.position
+
+    if (part.shape === '.') {
+      if (field[y]?.[x + 1]) return part
+    }
+
+    if (part.shape === 's') {
+      if (field[y]?.[x + 2] || field[y - 1]?.[x + 2] || field[y - 2]?.[x + 1])
+        return part
+    }
+
+    if (part.shape === 'i') {
+      if (
+        field[y]?.[x + 1] ||
+        field[y - 1]?.[x + 1] ||
+        field[y - 2]?.[x + 1] ||
+        field[y - 3]?.[x + 1]
+      )
+        return part
+    }
+
+    if (part.shape === 't') {
+      if (field[y]?.[x + 2] || field[y - 1]?.[x + 3]) return part
+    }
+
+    if (part.shape === 'o') {
+      if (field[y]?.[x + 2] || field[y - 1]?.[x + 2]) return part
+    }
+
     return {
       ...part,
       position: {
@@ -172,7 +232,7 @@ export const handleFieldStack = (
     const fixedField = buildPart(newField, part)
 
     setPart({
-      position: { x: 0, y: 0 },
+      position: { x: 4, y: 0 },
       color: randomizeColor(),
       shape: randomizeShape(),
     })

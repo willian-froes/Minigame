@@ -11,3 +11,5 @@ export type MiniGameSlug = Lowercase<MiniGame['name']>
 export type MiniGameBySlug = {
   [K in Lowercase<MiniGame['name']>]: MiniGame
 }
+
+export type MiniGameStatus = 'ready-to-play' | 'playing' | 'game-over'
