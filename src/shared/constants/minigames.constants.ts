@@ -1,4 +1,6 @@
 import { TetrisPage } from '@/modules/minigames/tetris'
+import { BombermanPage } from '@/modules/minigames/bomberman'
+
 import { MiniGame, MiniGameBySlug } from '../types'
 
 export const MINIGAMES: MiniGame[] = [
@@ -13,8 +15,8 @@ export const MINIGAMES: MiniGame[] = [
     id: 2,
     name: 'Bomberman',
     url: '/minigames/bomberman',
-    disabled: true,
-    board: () => null,
+    disabled: false,
+    board: BombermanPage,
   },
 ]
 

@@ -11,14 +11,6 @@ export const Wrapper = styled.main`
   gap: 8px;
 `
 
-export const Container = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-`
-
 export const Field = styled.div`
   display: grid;
   grid-template-columns: repeat(${FIELD_COLUMNS}, 1fr);

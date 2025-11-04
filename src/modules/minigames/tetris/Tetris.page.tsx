@@ -1,13 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
 
-import {
-  FIELD_COLUMNS,
-  FIELD_FRAME_RATE,
-  PART_INITIAL,
-} from './Tetris.constants'
+import { MiniGameStatus } from '@/shared/types'
+import { Button } from '@/shared/components'
+
+import { FIELD_FRAME_RATE, PART_INITIAL } from './Tetris.constants'
 import * as Game from './Tetris.styles'
 import { Field, Part } from './Tetris.types'
 import {
@@ -19,12 +17,8 @@ import {
   randomizeColor,
   randomizeShape,
 } from './Tetris.utils'
-import { MiniGameStatus } from '@/shared/types'
-import { Button } from '@/shared/components'
 
 export const TetrisPage = () => {
-  const { refresh } = useRouter()
-
   const [field, setField] = useState<Field>(buildField())
   const [part, setPart] = useState<Part>(PART_INITIAL)
   const [score, setScore] = useState<number>(0)
@@ -115,9 +109,7 @@ export const TetrisPage = () => {
     <Game.Wrapper>
       <p>Tetris</p>
       <p>Score: {score}</p>
-      <Game.Container>
-        <Game.Field>{_game}</Game.Field>
-      </Game.Container>
+      <Game.Field>{_game}</Game.Field>
     </Game.Wrapper>
   )
 }

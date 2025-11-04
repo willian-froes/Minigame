@@ -17,7 +17,7 @@ O projeto foi desenvolvido com o desafio de criar os minigames com **o mínimo d
 ## 🕹️ Catálogo de Minigames
 
 - 🟦 **Tetris** (🛠️ Em desenvolvimento) -> Jogar
-- 💣 **Bomberman** (🚧 Em breve)
+- 💣 **Bomberman** (🛠️ Em desenvolvimento) -> Jogar
 
 > ⚠️ O status indica se o minigame está pronto para jogar. Jogos ainda em desenvolvimento não têm link ativo.
 
