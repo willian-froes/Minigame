@@ -24,6 +24,8 @@ export type Position = {
 }
 
 export type Bomb = {
+  id: string
   position: Position
   range: number
+  isExploded?: boolean
 }

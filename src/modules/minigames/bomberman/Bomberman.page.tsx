@@ -72,14 +72,94 @@ export const BombermanPage = () => {
       if (event.key === 'ArrowDown') setDirection('down')
 
       if (event.key.toLowerCase() === 'b') {
-        setBombs(prev => {
-          const updatedBombs = prev
-          const bomb: Bomb = { position: player.position, range: 1 }
+        const id = crypto.randomUUID()
 
-          updatedBombs.push(bomb)
+        const bomb: Bomb = {
+          id,
+          position: player.position,
+          range: 1,
+        }
 
-          return updatedBombs
-        })
+        setBombs(prev => [...prev, bomb])
+
+        setTimeout(() => {
+          setBombs(prev =>
+            prev.map(bombInField => {
+              // TODO: Modificar lógica considerando range e remover bomba depois de um tempo
+              if (bombInField.id === id) {
+                if (
+                  field[bomb.position.y + 1][bomb.position.x]?.type !== 'solid'
+                ) {
+                  const explosion: Bomb = {
+                    id: crypto.randomUUID(),
+                    position: {
+                      x: bomb.position.x,
+                      y: bomb.position.y + 1,
+                    },
+                    range: 1,
+                    isExploded: true,
+                  }
+
+                  setBombs(prev => [...prev, explosion])
+                }
+
+                if (
+                  field[bomb.position.y - 1][bomb.position.x]?.type !== 'solid'
+                ) {
+                  const explosion: Bomb = {
+                    id: crypto.randomUUID(),
+                    position: {
+                      x: bomb.position.x,
+                      y: bomb.position.y - 1,
+                    },
+                    range: 1,
+                    isExploded: true,
+                  }
+
+                  setBombs(prev => [...prev, explosion])
+                }
+
+                if (
+                  field[bomb.position.y][bomb.position.x + 1]?.type !== 'solid'
+                ) {
+                  const explosion: Bomb = {
+                    id: crypto.randomUUID(),
+                    position: {
+                      x: bomb.position.x + 1,
+                      y: bomb.position.y,
+                    },
+                    range: 1,
+                    isExploded: true,
+                  }
+
+                  setBombs(prev => [...prev, explosion])
+                }
+
+                if (
+                  field[bomb.position.y][bomb.position.x - 1]?.type !== 'solid'
+                ) {
+                  const explosion: Bomb = {
+                    id: crypto.randomUUID(),
+                    position: {
+                      x: bomb.position.x - 1,
+                      y: bomb.position.y,
+                    },
+                    range: 1,
+                    isExploded: true,
+                  }
+
+                  setBombs(prev => [...prev, explosion])
+                }
+
+                return {
+                  ...bombInField,
+                  isExploded: true,
+                } as Bomb
+              }
+              return bombInField
+            }),
+          )
+        }, 5000)
       }
     }
 
@@ -98,7 +178,7 @@ export const BombermanPage = () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
     }
-  }, [direction, player.position])
+  }, [direction, field, player.position])
 
   // TODO: Atualiza posição do jogador
   useEffect(() => {
@@ -143,8 +223,12 @@ export const BombermanPage = () => {
       <Game.Field>
         {_game}
         <Game.Player $color={player.color} $position={player.position} />
-        {bombs.map((bomb, index) => (
-          <Game.Bomb key={index} $position={bomb.position} />
+        {bombs.map(bomb => (
+          <Game.Bomb
+            key={bomb.id}
+            $position={bomb.position}
+            $isExplosion={bomb.isExploded}
+          />
         ))}
       </Game.Field>
     </Game.Wrapper>

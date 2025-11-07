@@ -1,7 +1,31 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import { FIELD_AREA_SIZE, FIELD_COLUMNS } from './Bomberman.constants'
 import { PlayerColor, Position } from './Bomberman.types'
+
+const bombPulse = keyframes`
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.7);
+  }
+  100% {
+    transform: scale(1);
+  }
+`
+
+const explosionPulse = keyframes`
+  0% {
+    transform: scale(1.3);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1.3);
+  }
+`
 
 export const Wrapper = styled.main`
   display: flex;
@@ -43,7 +67,7 @@ export const Player = styled.div<{
   transition: transform 150ms linear;
 `
 
-export const Bomb = styled.div<{ $position: Position }>`
+export const Bomb = styled.div<{ $position: Position; $isExplosion?: boolean }>`
   width: ${FIELD_AREA_SIZE}px;
   height: ${FIELD_AREA_SIZE}px;
   position: absolute;
@@ -56,12 +80,16 @@ export const Bomb = styled.div<{ $position: Position }>`
   transition: transform 150ms linear;
 
   &::before {
-    content: '💣';
+    content: '${({ $isExplosion }) => ($isExplosion ? '💥' : '💣')}';
     font-size: ${FIELD_AREA_SIZE * 0.7}px;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 100%;
+    animation: ${({ $isExplosion }) =>
+        $isExplosion ? explosionPulse : bombPulse}
+      ${({ $isExplosion }) => ($isExplosion ? '300ms' : '1s')} infinite
+      ease-in-out;
   }
 `
