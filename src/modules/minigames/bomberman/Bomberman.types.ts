@@ -5,11 +5,14 @@ export type Block = {
   drop?: PowerUp
 }
 
-export type BlockType = 'solid' | 'breakable'
+export type BlockType = 'solid' | 'breakable' | 'grass'
 
 export type PowerUp = {
   name: string
+  type: PowerUpType
 }
+
+export type PowerUpType = 'bomb' | 'explosion' | 'velocity'
 
 export type Player = {
   color: PlayerColor
@@ -28,4 +31,5 @@ export type Bomb = {
   position: Position
   range: number
   isExploded?: boolean
+  parentId?: string
 }
