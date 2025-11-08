@@ -15,8 +15,22 @@ export type PowerUp = {
 export type PowerUpType = 'bomb' | 'explosion' | 'velocity'
 
 export type Player = {
+  id: number
   color: PlayerColor
+  movement: PlayerMovement
+  attributes: PlayerAttributes
+}
+
+export type PlayerMovement = {
   position: Position
+  direction: Direction
+}
+
+export type PlayerAttributes = {
+  lifes: number
+  multipleBombsLimit: number
+  explosionRange: number
+  movementVelocity: number
 }
 
 export type PlayerColor = 'red' | 'blue' | 'green' | 'black'
@@ -25,6 +39,8 @@ export type Position = {
   x: number
   y: number
 }
+
+export type Direction = 'left' | 'right' | 'up' | 'down' | null
 
 export type Bomb = {
   id: string

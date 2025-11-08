@@ -1,27 +1,17 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-
-import { MiniGameStatus } from '@/shared/types'
+import { useEffect, useMemo, useState } from 'react'
 
 import * as Game from './Bomberman.styles'
 import { Block, BlockType, Bomb, Field, Player } from './Bomberman.types'
 import { buildField } from './Bomberman.utils'
-import {
-  LIFES_INITIAL,
-  FIELD_COLUMNS,
-  PLAYER_INITIAL,
-} from './Bomberman.constants'
+import { PLAYER_INITIAL } from './Bomberman.constants'
 
 export const BombermanPage = () => {
   const [field, setField] = useState<Field>(buildField())
-  const [lifes, setLifes] = useState<number>(LIFES_INITIAL)
-  const [status, setStatus] = useState<MiniGameStatus>('playing')
-  const [player, setPlayer] = useState<Player>(PLAYER_INITIAL)
-  const [direction, setDirection] = useState<
-    'left' | 'right' | 'up' | 'down' | null
-  >(null)
   const [bombs, setBombs] = useState<Bomb[]>([])
+
+  const [player, setPlayer] = useState<Player>(PLAYER_INITIAL)
 
   const _game = useMemo(
     () =>
@@ -35,33 +25,6 @@ export const BombermanPage = () => {
       ),
     [field],
   )
-
-  // Prepara o campo com blocos de grama e solidos
-  // useEffect(() => {
-  //   setField(prev => {
-  //     const emptyField = prev.map(row => [...row])
-
-  //     emptyField[0] = emptyField[0].map(() => ({ type: 'solid' }))
-
-  //     emptyField[emptyField.length - 1] = emptyField[emptyField.length - 1].map(
-  //       () => ({ type: 'solid' }),
-  //     )
-
-  //     const newField = emptyField.map((row, rowIndex) =>
-  //       row.map((cell, colIndex) => {
-  //         if (
-  //           (colIndex % 2 === 0 && rowIndex % 2 === 0) ||
-  //           [0, FIELD_COLUMNS - 1].includes(colIndex)
-  //         ) {
-  //           return { type: 'solid' } as Block
-  //         }
-  //         return cell
-  //       }),
-  //     )
-
-  //     return newField
-  //   })
-  // }, [])
 
   useEffect(() => {
     setField(prev => {
@@ -94,29 +57,29 @@ export const BombermanPage = () => {
       }
 
       // 4) Limpa área inicial do player (3 tiles)
-      // const safePositions = [
-      //   { x: 1, y: 1 },
-      //   { x: 1, y: 2 },
-      //   { x: 2, y: 1 },
-      // ]
-      // safePositions.forEach(pos => {
-      //   if (baseField[pos.y][pos.x].type !== 'solid') {
-      //     baseField[pos.y][pos.x] = { type: 'grass' }
-      //   }
-      // })
+      const safePositions = [
+        { x: 1, y: 1 },
+        { x: 1, y: 2 },
+        { x: 2, y: 1 },
+      ]
+      safePositions.forEach(pos => {
+        if (baseField[pos.y][pos.x].type !== 'solid') {
+          baseField[pos.y][pos.x] = { type: 'grass' }
+        }
+      })
 
       // 5) Gera BREAKABLE BLOCKS aleatórios nas áreas de grass
-      // const probability = 0.65
-      // for (let y = 1; y < rows - 1; y++) {
-      //   for (let x = 1; x < cols - 1; x++) {
-      //     if (baseField[y][x].type === 'grass') {
-      //       const isSafe = safePositions.some(p => p.x === x && p.y === y)
-      //       if (!isSafe && Math.random() < probability) {
-      //         baseField[y][x] = { type: 'breakable' }
-      //       }
-      //     }
-      //   }
-      // }
+      const probability = 0.15 // ideal 0.65
+      for (let y = 1; y < rows - 1; y++) {
+        for (let x = 1; x < cols - 1; x++) {
+          if (baseField[y][x].type === 'grass') {
+            const isSafe = safePositions.some(p => p.x === x && p.y === y)
+            if (!isSafe && Math.random() < probability) {
+              baseField[y][x] = { type: 'breakable' }
+            }
+          }
+        }
+      }
 
       return baseField
     })
@@ -125,17 +88,47 @@ export const BombermanPage = () => {
   // Gerencia inputs do teclado dinamicamente
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowLeft') setDirection('left')
-      if (event.key === 'ArrowRight') setDirection('right')
-      if (event.key === 'ArrowUp') setDirection('up')
-      if (event.key === 'ArrowDown') setDirection('down')
+      if (event.key === 'ArrowLeft')
+        setPlayer(
+          prev =>
+            ({
+              ...prev,
+              movement: { ...prev.movement, direction: 'left' },
+            } as Player),
+        )
 
+      if (event.key === 'ArrowRight')
+        setPlayer(
+          prev =>
+            ({
+              ...prev,
+              movement: { ...prev.movement, direction: 'right' },
+            } as Player),
+        )
+
+      if (event.key === 'ArrowUp')
+        setPlayer(
+          prev =>
+            ({
+              ...prev,
+              movement: { ...prev.movement, direction: 'up' },
+            } as Player),
+        )
+
+      if (event.key === 'ArrowDown')
+        setPlayer(
+          prev =>
+            ({
+              ...prev,
+              movement: { ...prev.movement, direction: 'down' },
+            } as Player),
+        )
       if (event.key.toLowerCase() === 'b') {
         const id = crypto.randomUUID()
 
         const bomb: Bomb = {
           id,
-          position: player.position,
+          position: player.movement.position,
           range: 1,
         }
 
@@ -144,8 +137,9 @@ export const BombermanPage = () => {
         setTimeout(() => {
           setBombs(prev =>
             prev.map(bombInField => {
-              // TODO: Modificar lógica considerando range e remover bomba depois de um tempo
+              // TODO: Modificar lógica considerando range da bomba do player
               if (bombInField.id === id) {
+                // Expande explosão 1 área acima
                 if (
                   field[bomb.position.y + 1][bomb.position.x]?.type !== 'solid'
                 ) {
@@ -161,8 +155,11 @@ export const BombermanPage = () => {
                   }
 
                   setBombs(prev => [...prev, explosion])
+
+                  // TODO: Lógica aqui para quebrar bloco quebrável, replicar para demais
                 }
 
+                // Expande explosão 1 área abaixo
                 if (
                   field[bomb.position.y - 1][bomb.position.x]?.type !== 'solid'
                 ) {
@@ -180,6 +177,7 @@ export const BombermanPage = () => {
                   setBombs(prev => [...prev, explosion])
                 }
 
+                // Expande explosão 1 área a esquerda
                 if (
                   field[bomb.position.y][bomb.position.x + 1]?.type !== 'solid'
                 ) {
@@ -197,6 +195,7 @@ export const BombermanPage = () => {
                   setBombs(prev => [...prev, explosion])
                 }
 
+                // Expande explosão 1 área a direita
                 if (
                   field[bomb.position.y][bomb.position.x - 1]?.type !== 'solid'
                 ) {
@@ -214,6 +213,7 @@ export const BombermanPage = () => {
                   setBombs(prev => [...prev, explosion])
                 }
 
+                // Sumir explosões 2 segundos após explodir a bomba
                 setTimeout(() => {
                   setBombs(prev =>
                     prev.filter(
@@ -238,11 +238,38 @@ export const BombermanPage = () => {
     }
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      if (direction === 'left' && event.key === 'ArrowLeft') setDirection(null)
-      if (direction === 'right' && event.key === 'ArrowRight')
-        setDirection(null)
-      if (direction === 'up' && event.key === 'ArrowUp') setDirection(null)
-      if (direction === 'down' && event.key === 'ArrowDown') setDirection(null)
+      if (player.movement.direction === 'left' && event.key === 'ArrowLeft')
+        setPlayer(
+          prev =>
+            ({
+              ...prev,
+              movement: { ...prev.movement, direction: null },
+            } as Player),
+        )
+      if (player.movement.direction === 'right' && event.key === 'ArrowRight')
+        setPlayer(
+          prev =>
+            ({
+              ...prev,
+              movement: { ...prev.movement, direction: null },
+            } as Player),
+        )
+      if (player.movement.direction === 'up' && event.key === 'ArrowUp')
+        setPlayer(
+          prev =>
+            ({
+              ...prev,
+              movement: { ...prev.movement, direction: null },
+            } as Player),
+        )
+      if (player.movement.direction === 'down' && event.key === 'ArrowDown')
+        setPlayer(
+          prev =>
+            ({
+              ...prev,
+              movement: { ...prev.movement, direction: null },
+            } as Player),
+        )
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -252,34 +279,58 @@ export const BombermanPage = () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
     }
-  }, [direction, field, player.position])
+  }, [field, player.movement.direction, player.movement.position])
 
   // TODO: Atualiza posição do jogador
   useEffect(() => {
     const interval = setInterval(() => {
       setPlayer(prev => {
-        if (!direction) return prev
+        if (!prev.movement.direction) return prev
 
-        const { x, y } = prev.position
+        const { x, y } = prev.movement.position
 
-        if (direction === 'left') {
+        if (prev.movement.direction === 'left') {
           if (field[y][x - 1]?.type !== 'grass') return prev
-          return { ...prev, position: { x: x - 1, y } }
+          return {
+            ...prev,
+            movement: {
+              ...prev.movement,
+              position: { x: x - 1, y },
+            },
+          }
         }
 
-        if (direction === 'right') {
+        if (prev.movement.direction === 'right') {
           if (field[y][x + 1]?.type !== 'grass') return prev
-          return { ...prev, position: { x: x + 1, y } }
+          return {
+            ...prev,
+            movement: {
+              ...prev.movement,
+              position: { x: x + 1, y },
+            },
+          }
         }
 
-        if (direction === 'up') {
+        if (prev.movement.direction === 'up') {
           if (field[y - 1][x]?.type !== 'grass') return prev
-          return { ...prev, position: { x, y: y - 1 } }
+          return {
+            ...prev,
+            movement: {
+              ...prev.movement,
+              position: { x, y: y - 1 },
+            },
+          }
         }
 
-        if (direction === 'down') {
+        if (prev.movement.direction === 'down') {
           if (field[y + 1][x]?.type !== 'grass') return prev
-          return { ...prev, position: { x, y: y + 1 } }
+          return {
+            ...prev,
+            movement: {
+              ...prev.movement,
+              position: { x, y: y + 1 },
+            },
+          }
         }
 
         return prev
@@ -287,16 +338,19 @@ export const BombermanPage = () => {
     }, 150)
 
     return () => clearInterval(interval)
-  }, [direction, field])
+  }, [field])
 
   return (
     <Game.Wrapper>
       <p>Bomberman</p>
-      <p>Lifes: {lifes}</p>
+      <p>Lifes: {player.attributes.lifes}</p>
 
       <Game.Field>
         {_game}
-        <Game.Player $color={player.color} $position={player.position} />
+        <Game.Player
+          $color={player.color}
+          $position={player.movement.position}
+        />
         {bombs.map(bomb => (
           <Game.Bomb
             key={bomb.id}
