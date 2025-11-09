@@ -1,3 +1,5 @@
+import { POWER_UP_TYPES } from './Bomberman.constants'
+
 export type Field = Array<Array<Block | undefined>>
 
 export type Block = {
@@ -8,11 +10,11 @@ export type Block = {
 export type BlockType = 'solid' | 'breakable' | 'grass'
 
 export type PowerUp = {
-  name: string
   type: PowerUpType
+  position?: Position
 }
 
-export type PowerUpType = 'bomb' | 'explosion' | 'velocity'
+export type PowerUpType = (typeof POWER_UP_TYPES)[number]
 
 export type Player = {
   id: number

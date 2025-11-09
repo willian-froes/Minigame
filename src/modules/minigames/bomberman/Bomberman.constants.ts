@@ -19,7 +19,9 @@ export const PLAYER_INITIAL: Player = {
   attributes: {
     lifes: 3,
     multipleBombsLimit: 1,
-    explosionRange: 1,
+    explosionRange: 3,
     movementVelocity: 1,
   },
 }
+
+export const POWER_UP_TYPES = ['bomb', 'velocity', 'explosion'] as const
