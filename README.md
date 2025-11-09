@@ -16,8 +16,8 @@ O projeto foi desenvolvido com o desafio de criar os minigames com **o mínimo d
 
 ## 🕹️ Catálogo de Minigames
 
-- 🟦 **Tetris** (🛠️ Em desenvolvimento) -> Jogar
-- 💣 **Bomberman** (🛠️ Em desenvolvimento) -> Jogar
+- 🟦 **Tetris** (🛠️ Em desenvolvimento)
+- 💣 **Bomberman** (🛠️ Em desenvolvimento)
 
 > ⚠️ O status indica se o minigame está pronto para jogar. Jogos ainda em desenvolvimento não têm link ativo.
 
@@ -57,11 +57,17 @@ npm run dev
 
 ## 📁 Estrutura do projeto
 
-- **/app** - principais arquivos
-  - **/components** - componentes reutilizáveis
-  - **/minigames** - páginas, componentes e outros recursos dos minigames
-- **/public** - recursos de assets
-  - **/favicons** - arquivos de ícones das páginas
+- **/public** - arquivos de assets
+  - **/favicons** - arquivos de ícones das páginas separados por pasta
+- **/src** - principais arquivos do projeto
+  - **/app** - roteamento de páginas
+  - **/modules** - modulos arquitetados por recurso
+    - **/lobby** - lobby de minigames
+    - **/minigames** - pastas e arquivos dos minigame individualmente
+  - **/shared** - recursos compartilhados entre os modulos
+    - **/components** - componentes genéricos
+    - **/constants** - constants de configurações
+    - **/types** - tipos compartilhados
 
 <br />
 
@@ -118,4 +124,4 @@ Este projeto é **não comercial** e está licenciado sob os termos especificado
 ## 🤝 Contribuição
 
 Contribuições são bem-vindas!  
-Para contribuir, faça um fork do projeto, adicione seu minigame ou melhoria, e envie um Pull Request.
+Para contribuir, faça um fork do projeto, adicione seu minigame ou melhoria, e envie uma Pull Request.
