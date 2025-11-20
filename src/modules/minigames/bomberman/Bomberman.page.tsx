@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { MiniGameStatus } from '@/shared/types'
+import { Button } from '@/shared/components'
+
 import * as Game from './Bomberman.styles'
 import {
   Block,
@@ -14,13 +17,23 @@ import {
 } from './Bomberman.types'
 import { buildField } from './Bomberman.utils'
 import { PLAYER_INITIAL, POWER_UP_TYPES } from './Bomberman.constants'
+import { PlayerV2 } from './Bomberman.player'
 
 export const BombermanPage = () => {
   const [field, setField] = useState<Field>(buildField())
   const [bombs, setBombs] = useState<Bomb[]>([])
   const [drops, setDrops] = useState<PowerUp[]>([])
+  const [status, setStatus] = useState<MiniGameStatus>('playing')
 
   const [player, setPlayer] = useState<Player>(PLAYER_INITIAL)
+
+  // TODO: Fazer reset total do field
+  const resetGame = useCallback(() => {
+    setField(buildField())
+    setBombs([])
+    setDrops([])
+    setStatus('playing')
+  }, [])
 
   const updateFieldAfterExplosion = useCallback((explosion: Bomb) => {
     setField(prev => {
@@ -40,6 +53,7 @@ export const BombermanPage = () => {
           setDrops(prev => [
             ...prev,
             {
+              id: crypto.randomUUID(),
               type: block.drop?.type,
               position: { x, y },
             } as PowerUp,
@@ -91,6 +105,26 @@ export const BombermanPage = () => {
         if (block.type === 'breakable') break
       }
 
+      setPlayer(prev => {
+        const isPlayerKilled = explosions.some(
+          explosion =>
+            explosion.position.x === prev.movement.position.x &&
+            explosion.position.y === prev.movement.position.y,
+        )
+
+        if (isPlayerKilled && prev.lastDamageFrom !== parentId) {
+          return {
+            ...prev,
+            attributes: {
+              ...prev.attributes,
+              lifes: prev.attributes.lifes - 1,
+            },
+            lastDamageFrom: parentId,
+          }
+        }
+
+        return prev
+      })
       return explosions
     },
     [field, updateFieldAfterExplosion],
@@ -178,8 +212,6 @@ export const BombermanPage = () => {
         }
       }
 
-      baseField[2][3] = { type: 'breakable' }
-
       return baseField
     })
   }, [])
@@ -223,10 +255,18 @@ export const BombermanPage = () => {
             } as Player),
         )
       if (event.key.toLowerCase() === 'b') {
+        const playerBombsInFieldCount = bombs.filter(
+          bomb => bomb.playerId === player.id,
+        ).length
+
+        if (playerBombsInFieldCount === player.attributes.multipleBombsLimit)
+          return
+
         const id = crypto.randomUUID()
 
         const bomb: Bomb = {
           id,
+          playerId: player.id,
           position: player.movement.position,
           range: 1,
         }
@@ -357,10 +397,9 @@ export const BombermanPage = () => {
       window.removeEventListener('keyup', handleKeyUp)
     }
   }, [
+    bombs,
     field,
-    player.attributes.explosionRange,
-    player.movement.direction,
-    player.movement.position,
+    player,
     spawnExplosionsInDirection,
     updateFieldAfterExplosion,
   ])
@@ -424,17 +463,62 @@ export const BombermanPage = () => {
     return () => clearInterval(interval)
   }, [field])
 
+  // TODO: Corrijir renderização das explosões
+  useEffect(() => {
+    const playerX = player.movement.position.x
+    const playerY = player.movement.position.y
+
+    // Verifica se existe um drop nessa posição
+    const dropAtPosition = drops.find(
+      drop => drop?.position?.x === playerX && drop.position.y === playerY,
+    )
+
+    if (!dropAtPosition) return
+
+    // 1. Remove o drop do mapa
+    setDrops(prev => prev.filter(d => d.id !== dropAtPosition.id))
+
+    // 2. Atualiza os atributos do player conforme o tipo do powerup
+    setPlayer(prev => {
+      const attributes = { ...prev.attributes }
+
+      if (dropAtPosition.type === 'bomb') attributes.multipleBombsLimit += 1
+
+      if (dropAtPosition.type === 'explosion') attributes.explosionRange += 1
+
+      if (dropAtPosition.type === 'velocity')
+        attributes.movementVelocity = Math.max(
+          50,
+          attributes.movementVelocity - 10,
+        )
+
+      return {
+        ...prev,
+        attributes: attributes,
+      }
+    })
+  }, [player.movement.position, drops])
+
+  useEffect(() => {
+    if (player.attributes.lifes === 0) setStatus('game-over')
+  }, [player.attributes.lifes])
+
+  if (status === 'game-over')
+    return (
+      <Game.Wrapper>
+        <p>Bomberman: Game over!</p>
+        <Button onClick={resetGame} label="Restart" />
+      </Game.Wrapper>
+    )
+
   return (
     <Game.Wrapper>
       <p>Bomberman</p>
-      <p>Lifes: {player.attributes.lifes}</p>
+      <p>attributes: {JSON.stringify(player.attributes)}</p>
 
       <Game.Field>
         {_game}
-        <Game.Player
-          $color={player.color}
-          $position={player.movement.position}
-        />
+        <PlayerV2 player={player} />
         {bombs.map(bomb => (
           <Game.Bomb
             key={bomb.id}
@@ -442,9 +526,9 @@ export const BombermanPage = () => {
             $isExplosion={bomb.isExploded}
           />
         ))}
-        {drops.map((powerUp, index) => (
+        {drops.map(powerUp => (
           <Game.Drop
-            key={index}
+            key={powerUp.id}
             $type={powerUp.type}
             $position={powerUp.position as Position}
           />

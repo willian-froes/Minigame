@@ -51,7 +51,9 @@ const MinigamePage = async ({ params }: MinigamePageProps) => {
 
   if (!miniGame) return notFound()
 
-  return <miniGame.board />
+  const Board = miniGame.board
+
+  return <Board />
 }
 
 export default MinigamePage

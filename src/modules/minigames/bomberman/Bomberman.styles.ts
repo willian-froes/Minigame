@@ -1,8 +1,13 @@
 import styled, { keyframes } from 'styled-components'
 
-import { FIELD_AREA_SIZE, FIELD_COLUMNS } from './Bomberman.constants'
+import {
+  FIELD_AREA_SIZE,
+  FIELD_COLUMNS,
+  PLAYER_COLOR_BY_MODEL,
+} from './Bomberman.constants'
 import {
   BlockType,
+  Direction,
   PlayerColor,
   Position,
   PowerUpType,
@@ -77,26 +82,107 @@ export const Area = styled.div<{ $type: BlockType }>`
   width: ${FIELD_AREA_SIZE}px;
   height: ${FIELD_AREA_SIZE}px;
   background-color: ${({ $type }) => areaColorByBlockType[$type]};
+
+  /* TODO: Implementar explosão na área, funciona sem absolute, usar before */
 `
 
-export const Player = styled.div<{
-  $color: PlayerColor
+const playerArmMovement = keyframes`
+  0% {
+    transform: translateY(0px);
+  }
+  25% {
+    transform: translateY(-30px);
+  }
+  50% {
+    transform: translateY(0px);
+  }
+  75% {
+    transform: translateY(30px);
+  }
+   100% {
+   transform: translateY(0px);
+  }
+`
+
+const playerHairMovement = keyframes`
+  0% {
+    transform: translateX(0px);
+  }
+  25% {
+    transform: translateX(-20px);
+  }
+  50% {
+    transform: translateX(0px);
+  }
+  75% {
+    transform: translateX(20px);
+  }
+   100% {
+   transform: translateX(0px);
+  }
+`
+
+export const playerRotationByDirection: Record<
+  Exclude<Direction, null>,
+  string
+> = {
+  up: '0deg',
+  down: '180deg',
+  left: '-90deg',
+  right: '90deg',
+}
+
+export const PlayerV2Base = styled.svg<{
   $position: Position
+  $direction?: Direction
+  $stopped?: boolean
+  $color: PlayerColor
 }>`
   width: ${FIELD_AREA_SIZE}px;
   height: ${FIELD_AREA_SIZE}px;
-  border-radius: ${FIELD_AREA_SIZE}px;
-  background-color: ${({ $color }) => $color};
-  border: 1px solid black;
 
   position: absolute;
   z-index: 10;
 
   transform: translate(
-    ${({ $position }) => $position.x * FIELD_AREA_SIZE}px,
-    ${({ $position }) => $position.y * FIELD_AREA_SIZE}px
-  );
+      ${({ $position }) => $position.x * FIELD_AREA_SIZE}px,
+      ${({ $position }) => $position.y * FIELD_AREA_SIZE}px
+    )
+    rotate(
+      ${({ $direction }) => $direction && playerRotationByDirection[$direction]}
+    );
   transition: transform 150ms linear;
+
+  & .right-arm {
+    color: ${({ $color }) => PLAYER_COLOR_BY_MODEL[$color].hands};
+    animation: ${playerArmMovement} 1s ease-in-out infinite;
+  }
+
+  & .left-arm {
+    color: ${({ $color }) => PLAYER_COLOR_BY_MODEL[$color].hands};
+    animation: ${playerArmMovement} 1s ease-in-out infinite reverse;
+  }
+
+  & .hair {
+    color: ${({ $color }) => PLAYER_COLOR_BY_MODEL[$color].hair};
+    animation: ${playerHairMovement} 1s ease-in-out infinite;
+  }
+
+  & .head {
+    color: ${({ $color }) => PLAYER_COLOR_BY_MODEL[$color].head};
+  }
+
+  & .body {
+    color: ${({ $color }) => PLAYER_COLOR_BY_MODEL[$color].body};
+  }
+
+  ${({ $stopped }) =>
+    $stopped &&
+    `
+    .right-arm, .left-arm, .hair {
+      animation-play-state: paused;
+    }
+  `}
 `
 
 export const Bomb = styled.div<{ $position: Position; $isExplosion?: boolean }>`

@@ -10,6 +10,7 @@ export type Block = {
 export type BlockType = 'solid' | 'breakable' | 'grass'
 
 export type PowerUp = {
+  id: string
   type: PowerUpType
   position?: Position
 }
@@ -21,6 +22,7 @@ export type Player = {
   color: PlayerColor
   movement: PlayerMovement
   attributes: PlayerAttributes
+  lastDamageFrom?: string | null
 }
 
 export type PlayerMovement = {
@@ -35,7 +37,14 @@ export type PlayerAttributes = {
   movementVelocity: number
 }
 
-export type PlayerColor = 'red' | 'blue' | 'green' | 'black'
+export type PlayerColor = 'white' | 'black' | 'red' | 'green'
+
+export type PlayerColorModel = {
+  head: string
+  hands: string
+  hair: string
+  body: string
+}
 
 export type Position = {
   x: number
@@ -50,4 +59,5 @@ export type Bomb = {
   range: number
   isExploded?: boolean
   parentId?: string
+  playerId?: number
 }
