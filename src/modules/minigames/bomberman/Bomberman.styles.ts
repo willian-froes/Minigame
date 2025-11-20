@@ -82,8 +82,6 @@ export const Area = styled.div<{ $type: BlockType }>`
   width: ${FIELD_AREA_SIZE}px;
   height: ${FIELD_AREA_SIZE}px;
   background-color: ${({ $type }) => areaColorByBlockType[$type]};
-
-  /* TODO: Implementar explosão na área, funciona sem absolute, usar before */
 `
 
 const playerArmMovement = keyframes`

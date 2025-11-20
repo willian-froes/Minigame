@@ -16,7 +16,11 @@ import {
   PowerUp,
 } from './Bomberman.types'
 import { buildField } from './Bomberman.utils'
-import { PLAYER_INITIAL, POWER_UP_TYPES } from './Bomberman.constants'
+import {
+  PLAYER_INITIAL,
+  PLAYER_SPEED_BASE_IN_MILLISECONDS,
+  POWER_UP_TYPES,
+} from './Bomberman.constants'
 import { PlayerV2 } from './Bomberman.player'
 
 export const BombermanPage = () => {
@@ -33,7 +37,19 @@ export const BombermanPage = () => {
     setBombs([])
     setDrops([])
     setStatus('playing')
+    setPlayer(PLAYER_INITIAL)
   }, [])
+
+  const hasBombAt = useCallback(
+    (x: number, y: number) => {
+      return bombs.some(b => {
+        // Considerar somente bombas que ainda NÃO explodiram
+        if (b.isExploded) return false
+        return b.position.x === x && b.position.y === y
+      })
+    },
+    [bombs],
+  )
 
   const updateFieldAfterExplosion = useCallback((explosion: Bomb) => {
     setField(prev => {
@@ -125,6 +141,7 @@ export const BombermanPage = () => {
 
         return prev
       })
+
       return explosions
     },
     [field, updateFieldAfterExplosion],
@@ -254,102 +271,54 @@ export const BombermanPage = () => {
               movement: { ...prev.movement, direction: 'down' },
             } as Player),
         )
-      if (event.key.toLowerCase() === 'b') {
-        const playerBombsInFieldCount = bombs.filter(
-          bomb => bomb.playerId === player.id,
-        ).length
 
-        if (playerBombsInFieldCount === player.attributes.multipleBombsLimit)
-          return
+      if (event.key.toLowerCase() === 'b') {
+        const bombsPlaced = bombs.filter(b => b.playerId === player.id).length
+        if (bombsPlaced >= player.attributes.multipleBombsLimit) return
 
         const id = crypto.randomUUID()
 
-        const bomb: Bomb = {
+        const newBomb: Bomb = {
           id,
           playerId: player.id,
           position: player.movement.position,
           range: 1,
         }
 
-        setBombs(prev => [...prev, bomb])
+        // adiciona a bomba normal
+        setBombs(prev => [...prev, newBomb])
 
+        // agenda explosão
         setTimeout(() => {
-          setBombs(prev =>
-            prev.map(bombInField => {
-              // quando estiver processando a bomba com esse id
-              if (bombInField.id !== id) return bombInField
+          const parentId = id
+          const range = player.attributes.explosionRange
 
-              const parentId = bombInField.id // <- explicito, seguro para closures
-              const range = player.attributes.explosionRange
+          const { x, y } = newBomb.position
 
-              const allExplosions: Bomb[] = []
+          // gera todas explosões
+          const explosionList: Bomb[] = [
+            ...spawnExplosionsInDirection(x, y, 0, 1, range, parentId),
+            ...spawnExplosionsInDirection(x, y, 0, -1, range, parentId),
+            ...spawnExplosionsInDirection(x, y, 1, 0, range, parentId),
+            ...spawnExplosionsInDirection(x, y, -1, 0, range, parentId),
+            {
+              id: parentId,
+              parentId,
+              position: { x, y },
+              isExploded: true,
+              range: 0,
+            },
+          ]
 
-              // baixo
-              allExplosions.push(
-                ...spawnExplosionsInDirection(
-                  bombInField.position.x,
-                  bombInField.position.y,
-                  0,
-                  1,
-                  range,
-                  parentId,
-                ),
-              )
+          // adiciona explosões ao estado
+          setBombs(prev => [...prev, ...explosionList])
 
-              // cima
-              allExplosions.push(
-                ...spawnExplosionsInDirection(
-                  bombInField.position.x,
-                  bombInField.position.y,
-                  0,
-                  -1,
-                  range,
-                  parentId,
-                ),
-              )
-
-              // direita
-              allExplosions.push(
-                ...spawnExplosionsInDirection(
-                  bombInField.position.x,
-                  bombInField.position.y,
-                  1,
-                  0,
-                  range,
-                  parentId,
-                ),
-              )
-
-              // esquerda
-              allExplosions.push(
-                ...spawnExplosionsInDirection(
-                  bombInField.position.x,
-                  bombInField.position.y,
-                  -1,
-                  0,
-                  range,
-                  parentId,
-                ),
-              )
-
-              // adiciona todas as explosões ao estado de bombs
-              setBombs(prev => [...prev, ...allExplosions])
-
-              // remove as explosões 1s depois, usando parentId capturado
-              setTimeout(() => {
-                setBombs(prev =>
-                  prev.filter(
-                    b => b.parentId !== parentId && b.id !== parentId,
-                  ),
-                )
-              }, 1000)
-
-              return {
-                ...bombInField,
-                isExploded: true,
-              } as Bomb
-            }),
-          )
+          // remove explosões 1s depois
+          setTimeout(() => {
+            setBombs(prev =>
+              prev.filter(b => b.parentId !== parentId && b.id !== parentId),
+            )
+          }, 1000)
         }, 5000)
       }
     }
@@ -404,8 +373,11 @@ export const BombermanPage = () => {
     updateFieldAfterExplosion,
   ])
 
-  // TODO: Atualiza posição do jogador
   useEffect(() => {
+    const velocity = player.attributes.movementVelocity
+
+    const tickRate = Math.max(40, PLAYER_SPEED_BASE_IN_MILLISECONDS / velocity)
+
     const interval = setInterval(() => {
       setPlayer(prev => {
         if (!prev.movement.direction) return prev
@@ -413,57 +385,68 @@ export const BombermanPage = () => {
         const { x, y } = prev.movement.position
 
         if (prev.movement.direction === 'left') {
-          if (field[y][x - 1]?.type !== 'grass') return prev
+          const nextX = x - 1
+          if (field[y][nextX]?.type !== 'grass') return prev
+          if (hasBombAt(nextX, y)) return prev
+
           return {
             ...prev,
             movement: {
               ...prev.movement,
-              position: { x: x - 1, y },
+              position: { x: nextX, y },
             },
           }
         }
 
         if (prev.movement.direction === 'right') {
-          if (field[y][x + 1]?.type !== 'grass') return prev
+          const nextX = x + 1
+          if (field[y][nextX]?.type !== 'grass') return prev
+          if (hasBombAt(nextX, y)) return prev
+
           return {
             ...prev,
             movement: {
               ...prev.movement,
-              position: { x: x + 1, y },
+              position: { x: nextX, y },
             },
           }
         }
 
         if (prev.movement.direction === 'up') {
-          if (field[y - 1][x]?.type !== 'grass') return prev
+          const nextY = y - 1
+          if (field[nextY][x]?.type !== 'grass') return prev
+          if (hasBombAt(x, nextY)) return prev
+
           return {
             ...prev,
             movement: {
               ...prev.movement,
-              position: { x, y: y - 1 },
+              position: { x, y: nextY },
             },
           }
         }
 
         if (prev.movement.direction === 'down') {
-          if (field[y + 1][x]?.type !== 'grass') return prev
+          const nextY = y + 1
+          if (field[nextY][x]?.type !== 'grass') return prev
+          if (hasBombAt(x, nextY)) return prev
+
           return {
             ...prev,
             movement: {
               ...prev.movement,
-              position: { x, y: y + 1 },
+              position: { x, y: nextY },
             },
           }
         }
 
         return prev
       })
-    }, 150)
+    }, tickRate)
 
     return () => clearInterval(interval)
-  }, [field])
+  }, [field, hasBombAt, player.attributes.movementVelocity])
 
-  // TODO: Corrijir renderização das explosões
   useEffect(() => {
     const playerX = player.movement.position.x
     const playerY = player.movement.position.y
@@ -476,21 +459,15 @@ export const BombermanPage = () => {
     if (!dropAtPosition) return
 
     // 1. Remove o drop do mapa
-    setDrops(prev => prev.filter(d => d.id !== dropAtPosition.id))
+    setDrops(prev => prev.filter(drop => drop.id !== dropAtPosition.id))
 
     // 2. Atualiza os atributos do player conforme o tipo do powerup
     setPlayer(prev => {
       const attributes = { ...prev.attributes }
 
       if (dropAtPosition.type === 'bomb') attributes.multipleBombsLimit += 1
-
       if (dropAtPosition.type === 'explosion') attributes.explosionRange += 1
-
-      if (dropAtPosition.type === 'velocity')
-        attributes.movementVelocity = Math.max(
-          50,
-          attributes.movementVelocity - 10,
-        )
+      if (dropAtPosition.type === 'velocity') attributes.movementVelocity += 1
 
       return {
         ...prev,
@@ -519,9 +496,9 @@ export const BombermanPage = () => {
       <Game.Field>
         {_game}
         <PlayerV2 player={player} />
-        {bombs.map(bomb => (
+        {bombs.map((bomb, index) => (
           <Game.Bomb
-            key={bomb.id}
+            key={`${bomb.id}-${index}`}
             $position={bomb.position}
             $isExplosion={bomb.isExploded}
           />

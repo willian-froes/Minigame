@@ -52,3 +52,5 @@ export const PLAYER_COLOR_BY_MODEL: Record<PlayerColor, PlayerColorModel> = {
     body: '#AFD582',
   },
 }
+
+export const PLAYER_SPEED_BASE_IN_MILLISECONDS = 150
